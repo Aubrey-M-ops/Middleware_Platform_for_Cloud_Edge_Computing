@@ -1,22 +1,8 @@
 version: '3.8'
 services:
-  k3s-server:
-    image: rancher/k3s:latest
-    container_name: k3s-server
-    command: server --disable traefik --disable servicelb --disable-cloud-controller --disable-network-policy --disable local-storage
-    ports:
-      - "6443:6443"
-    networks:
-      - cloud-edge-net
-    privileged: true
-    environment:
-      - K3S_TOKEN=mysecret
-    volumes:
-      - /var/lib/rancher/k3s:/var/lib/rancher/k3s
-      - /etc/rancher/k3s:/etc/rancher/k3s
-
   # mongodb:
   #   image: mongo:latest
+  #   container_name: mongodb
   #   ports:
   #     - "27017:27017"
   #   networks:
@@ -28,94 +14,11 @@ services:
   #   build:
   #     context: ./docker/resource-discovery
   #     dockerfile: Dockerfile
+  #   container_name: resource-discovery
   #   networks:
   #     - cloud-edge-net
   #   depends_on:
   #     - mongodb
-
-  cloud-node1:
-    build:
-      context: ./docker/node_simulator
-      dockerfile: Dockerfile
-    container_name: cloud-node1
-    cpus: "2"
-    mem_limit: "4g"
-    networks:
-      - cloud-edge-net
-    environment:
-      - NODE_ID=cloud-node1
-      - NODE_TYPE=cloud
-    command: [ "tail", "-f", "/dev/null" ]
-
-  cloud-node2:
-    build:
-      context: ./docker/node_simulator
-      dockerfile: Dockerfile
-    container_name: cloud-node2
-    cpus: "2"
-    mem_limit: "4g"
-    networks:
-      - cloud-edge-net
-    environment:
-      - NODE_ID=cloud-node2
-      - NODE_TYPE=cloud
-    command: [ "tail", "-f", "/dev/null" ]
-
-  cloud-node3:
-    build:
-      context: ./docker/node_simulator
-      dockerfile: Dockerfile
-    container_name: cloud-node3
-    cpus: "2"
-    mem_limit: "4g"
-    networks:
-      - cloud-edge-net
-    environment:
-      - NODE_ID=cloud-node3
-      - NODE_TYPE=cloud
-    command: [ "tail", "-f", "/dev/null" ]
-
-  edge-node1:
-    build:
-      context: ./docker/node_simulator
-      dockerfile: Dockerfile
-    container_name: edge-node1
-    cpus: "0.5"
-    mem_limit: "1g"
-    networks:
-      - cloud-edge-net
-    environment:
-      - NODE_ID=edge-node1
-      - NODE_TYPE=edge
-    command: [ "tail", "-f", "/dev/null" ]
-
-  edge-node2:
-    build:
-      context: ./docker/node_simulator
-      dockerfile: Dockerfile
-    container_name: edge-node2
-    cpus: "0.5"
-    mem_limit: "1g"
-    networks:
-      - cloud-edge-net
-    environment:
-      - NODE_ID=edge-node2
-      - NODE_TYPE=edge
-    command: [ "tail", "-f", "/dev/null" ]
-
-  edge-node3:
-    build:
-      context: ./docker/node_simulator
-      dockerfile: Dockerfile
-    container_name: edge-node3
-    cpus: "0.5"
-    mem_limit: "1g"
-    networks:
-      - cloud-edge-net
-    environment:
-      - NODE_ID=edge-node3
-      - NODE_TYPE=edge
-    command: [ "tail", "-f", "/dev/null" ]
 
 networks:
   cloud-edge-net:

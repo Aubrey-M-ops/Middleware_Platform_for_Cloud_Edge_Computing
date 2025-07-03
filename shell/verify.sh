@@ -51,33 +51,16 @@ sed -i "s/127.0.0.1/$K3S_SERVER_IP/" ~/.kube/k3s-config
 chmod 600 ~/.kube/k3s-config
 
 # verify cloud nodes (Kind cluster)
-echo "Verifying cloud nodes in Kind cluster..."
-check_command kubectl
+echo "☁️☁️☁️ Verifying cloud (Kind) cluster..."
 check_command kind
-kind get clusters | grep cloud-cluster > /dev/null || { echo -e "${RED}Error: cloud-cluster not found${NC}"; exit 1; }
-echo -e "${GREEN}Kind cluster cloud-cluster is running${NC}"
-kubectl get nodes && echo -e "${GREEN}Kind nodes listed successfully${NC}" || { echo -e "${RED}Failed to list Kind nodes${NC}"; exit 1; }
-kubectl get pods -n default | grep cloud-node | while read -r line; do
-  if [[ $line == *"Running"* ]]; then
-    echo -e "${GREEN}Pod $line is running${NC}"
-  else
-    echo -e "${RED}Pod $line is not running${NC}"
-    exit 1
-  fi
-done
-kubectl get nodes --show-labels | grep "node-type=cloud" && echo -e "${GREEN}Cloud node labels verified${NC}" || { echo -e "${RED}Cloud node labels missing${NC}"; exit 1; }
+kind get clusters | grep cloud-cluster > /dev/null || { echo -e "${RED}cloud-cluster not found${NC}"; exit 1; }
+kubectl get nodes --show-labels | grep "node-type=cloud" && echo -e "${GREEN}Cloud node labels OK${NC}" || { echo -e "${RED}Cloud node labels missing${NC}"; exit 1; }
 
-# verify edge nodes (K3s cluster)
-echo "Verifying edge nodes in K3s cluster..."
-KUBECONFIG=~/.kube/k3s-config k3s kubectl get nodes | grep edge-node | while read -r line; do
-  if [[ $line == *"Ready"* ]]; then
-    echo -e "${GREEN}Node $line is Ready${NC}"
-  else
-    echo -e "${RED}Node $line is not Ready${NC}"
-    exit 1
-  fi
-done
-KUBECONFIG=~/.kube/k3s-config kubectl get nodes --show-labels | grep "node-type=edge" && echo -e "${GREEN}Edge node labels verified${NC}" || { echo -e "${RED}Edge node labels missing${NC}"; exit 1; }
+# verify edge nodes (K3d cluster)
+echo "🌍🌍🌍 Verifying edge (K3d) cluster..."
+check_command k3d
+k3d cluster list | grep edge-cluster > /dev/null || { echo -e "${RED}edge-cluster not found${NC}"; exit 1; }
+KUBECONFIG=~/.kube/k3s-edge-config kubectl get nodes --show-labels | grep "node-type=edge" && echo -e "${GREEN}Edge node labels OK${NC}" || { echo -e "${RED}Edge node labels missing${NC}"; exit 1; }
 
 # TODO: verify node-agent.js
 # echo "Verifying node-agent.js on all nodes..."
