@@ -14,6 +14,12 @@ if ! command -v kind &> /dev/null; then
   sudo mv ./kind /usr/local/bin/kind
 fi
 
+# Define project paths
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+ROOT_DIR=$(dirname "$SCRIPT_DIR")
+CONFIG_DIR="$ROOT_DIR/config/.kube"
+mkdir -p "$CONFIG_DIR"
+
 # Recreate cluster to ensure clean state
 if kind get clusters | grep -q "cloud-cluster"; then
   echo "Removing existing cloud-cluster..."
@@ -39,20 +45,28 @@ if [ "$TOTAL_CPU" -lt 4 ] || [ "$TOTAL_MEM" -lt 8 ]; then
   echo "   Consider reducing WORKER_COUNT or increasing host resources"
 fi
 
-# generate kind-config.yaml dynamically
-cat <<EOF > kind-config.yaml
+# generate kind-config.yaml dynamically under CONFIG_DIR
+KINDCFG="$CONFIG_DIR/kind-config.yaml"
+cat <<EOF > "$KINDCFG"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
 - role: control-plane
 EOF
 for i in $(seq 1 $WORKER_COUNT); do
-  echo "- role: worker" >> kind-config.yaml
+  echo "- role: worker" >> "$KINDCFG"
 done
 
-kind create cluster --name cloud-cluster --config kind-config.yaml
+######################## create Kind cluster########################################
+echo "🏠 Creating cloud Kind cluster (cloud-cluster)..."
+kind create cluster --name cloud-cluster --config "$KINDCFG"
 
-# 等待集群完全就绪
+# save kubeconfig
+kind get kubeconfig --name cloud-cluster > "$CONFIG_DIR/kubeconfig-k8s.yaml"
+echo "✍️ Kubeconfig saved to $CONFIG_DIR/kubeconfig-k8s.yaml"
+######################################################################################
+
+# wait for cluster to be ready
 echo "⏳ Waiting for cluster to be ready..."
 sleep 10
 kubectl wait --for=condition=Ready nodes --all --timeout=300s || echo "Warning: Some nodes may not be ready yet"

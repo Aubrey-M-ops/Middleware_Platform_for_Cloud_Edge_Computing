@@ -1,24 +1,26 @@
 version: '3.8'
 services:
-  # mongodb:
-  #   image: mongo:latest
-  #   container_name: mongodb
-  #   ports:
-  #     - "27017:27017"
-  #   networks:
-  #     - cloud-edge-net
-  #   volumes:
-  #     - mongodb-data:/data/db
+# store node info
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - cloud-edge-net
+    volumes:
+      - mongodb-data:/data/db
 
-  # resource-discovery:
-  #   build:
-  #     context: ./docker/resource-discovery
-  #     dockerfile: Dockerfile
-  #   container_name: resource-discovery
-  #   networks:
-  #     - cloud-edge-net
-  #   depends_on:
-  #     - mongodb
+# di
+  resource-discovery:
+    build:
+      context: ./docker/resource-discovery
+      dockerfile: Dockerfile
+    container_name: resource-discovery
+    networks:
+      - cloud-edge-net
+    depends_on:
+      - mongodb
 
 networks:
   cloud-edge-net:

@@ -3,8 +3,11 @@
 cloud:
 	sudo ./shell/cloud-setup.sh
 
+cloud-nodes:
+	sudo docker ps --filter "name=cloud-cluster" --format "table {{.Names}}\t{{.Status}}" 
+
 edge:
-	sudo ./shell/edge-setup.sh
+	sudo -E ./shell/edge-setup.sh
 
 verify:
 	sudo ./shell/verify.sh

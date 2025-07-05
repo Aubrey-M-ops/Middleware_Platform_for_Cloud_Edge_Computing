@@ -6,10 +6,12 @@ set -e
 
 echo "🌍 Setting up K3d edge cluster..."
 
-# install k3d if missing
-if ! command -v k3d &> /dev/null; then
-  echo "Installing k3d..."
-  curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash -s -- --version v5.6.0
+# k3d >= v5.8.0 fixes a bug where the tools container could still generate an
+# "invalid IP" error even when K3D_HOST_IP is set. Use the latest 5.8.x.
+REQUIRED_K3D_VERSION="v5.8.3"
+if ! command -v k3d &> /dev/null || [[ $(k3d --version | awk '{print $3}') != $REQUIRED_K3D_VERSION ]]; then
+  echo "⚙️  Installing/upgrading k3d to $REQUIRED_K3D_VERSION ..."
+  curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=$REQUIRED_K3D_VERSION bash
 fi
 
 CLUSTER_NAME="edge-cluster"
@@ -22,21 +24,30 @@ if k3d cluster list | grep -q $CLUSTER_NAME; then
 fi
 
 ############################# 🌍 create 5 edge nodes ##################################
-k3d cluster create $CLUSTER_NAME --servers 1 --agents $AGENT_COUNT
+export K3D_HOST_IP=$(ip route get 1 | awk '/src/ {print $7}')
+k3d cluster create $CLUSTER_NAME --host-alias ${K3D_HOST_IP}:host.k3d.internal --servers 1 --agents $AGENT_COUNT
 #######################################################################################
 
+# Define project paths
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+ROOT_DIR=$(dirname "$SCRIPT_DIR")
+CONFIG_DIR="$ROOT_DIR/config/.kube"
+mkdir -p "$CONFIG_DIR"
+
+# export kubeconfig to project kubeconfigs directory
 echo "Fetching kubeconfig..."
-mkdir -p ~/.kube
-k3d kubeconfig get $CLUSTER_NAME > ~/.kube/k3s-edge-config
-chmod 600 ~/.kube/k3s-edge-config
+KUBECFG="$CONFIG_DIR/k3s-edge-config"
+k3d kubeconfig get $CLUSTER_NAME > "$KUBECFG"
+chmod 600 "$KUBECFG"
+echo "🔑 Kubeconfig saved to $KUBECFG"
 
 # label all agent nodes as edge (exclude server)
-for node in $(kubectl --kubeconfig ~/.kube/k3s-edge-config get nodes -o name | grep agent); do
-  kubectl --kubeconfig ~/.kube/k3s-edge-config label $node node-type=edge --overwrite || true
+for node in $(kubectl --kubeconfig "$KUBECFG" get nodes -o name | grep agent); do
+  kubectl --kubeconfig "$KUBECFG" label $node node-type=edge --overwrite || true
 done
 
 echo "✅ Edge cluster ready. Nodes:"
-kubectl --kubeconfig ~/.kube/k3s-edge-config get nodes --show-labels
+kubectl --kubeconfig "$KUBECFG" get nodes --show-labels
 
 ########################resource + network constraints ##################################
 echo "⛰️🌍  Applying resource + network constraints to edge agent containers..."
