@@ -4,7 +4,7 @@ cloud:
 	sudo ./shell/cloud-setup.sh
 
 cloud-nodes:
-	sudo docker ps --filter "name=cloud-cluster" --format "table {{.Names}}\t{{.Status}}" 
+	   kubectl --kubeconfig config/.kube/kubeconfig-k8s.yaml get nodes -o wide --show-labels
 
 edge:
 	sudo -E ./shell/edge-setup.sh

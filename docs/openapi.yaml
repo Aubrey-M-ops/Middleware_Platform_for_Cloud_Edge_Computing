@@ -1,0 +1,23 @@
+openapi: 3.1.0
+info: {title: Edge-Cloud Middleware API, version: 0.1.0}
+paths:
+  /node/heartbeat:
+    post:
+      summary: 上报节点资源
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NodeHeartbeat'
+      responses:
+        '204': {description: Updated}
+components:
+  schemas:
+    NodeHeartbeat:
+      type: object
+      properties:
+        nodeId: {type: string}
+        cpu:    {type: number}
+        mem:    {type: number}
+      required: [nodeId,cpu,mem]
