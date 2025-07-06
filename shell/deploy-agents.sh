@@ -25,6 +25,9 @@ fi
 # Build the Docker image
 docker build -t cloud-edge-agent:latest .
 
+# Load the image to Kind cluster
+kind load docker-image cloud-edge-agent:latest --name cloud-cluster
+
 echo "✅ Agent image built successfully"
 
 # Deploy to cloud cluster

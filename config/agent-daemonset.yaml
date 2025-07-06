@@ -24,7 +24,7 @@ spec:
       containers:
       - name: agent
         image: cloud-edge-agent:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Never
         resources:
           requests:
             memory: "64Mi"
