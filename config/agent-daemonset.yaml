@@ -1,3 +1,7 @@
+# DaemonSet作用：
+# 自动在每个符合条件的节点上创建Pod
+# 新节点加入集群时自动部署
+# 节点删除时自动清理Pod
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
