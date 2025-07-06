@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: cloud-agent
+  namespace: default
+  labels:
+    app: cloud-agent
+    node-type: cloud
+spec:
+  selector:
+    matchLabels:
+      app: cloud-agent
+  template:
+    metadata:
+      labels:
+        app: cloud-agent
+    spec:
+      nodeSelector:
+        node-type: cloud
+      containers:
+      - name: agent
+        image: cloud-edge-agent:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        env:
+        - name: BACKEND_URL
+          value: "http://backend-service:3000"
+        - name: NODE_TYPE
+          value: "cloud"
+        - name: HEARTBEAT_INTERVAL
+          value: "30"
+        volumeMounts:
+        - name: host-proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: host-sys
+          mountPath: /host/sys
+          readOnly: true
+      volumes:
+      - name: host-proc
+        hostPath:
+          path: /proc
+      - name: host-sys
+        hostPath:
+          path: /sys
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+      restartPolicy: Always 
