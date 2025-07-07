@@ -5,22 +5,30 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: cloud-agent
+  name: universal-agent
   namespace: default
   labels:
-    app: cloud-agent
-    node-type: cloud
+    app: universal-agent
+    node-type: universal
 spec:
   selector:
     matchLabels:
-      app: cloud-agent
+      app: universal-agent
   template:
     metadata:
       labels:
-        app: cloud-agent
+        app: universal-agent
     spec:
+      # only run on cloud nodes, exclude control-plane
       nodeSelector:
         node-type: cloud
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
       containers:
       - name: agent
         image: cloud-edge-agent:latest
@@ -34,7 +42,7 @@ spec:
             cpu: "100m"
         env:
         - name: BACKEND_URL
-          value: "http://backend-service:3000"
+          value: "http://192.168.9.100:3000"
         - name: NODE_TYPE
           value: "cloud"
         - name: HEARTBEAT_INTERVAL
@@ -53,8 +61,4 @@ spec:
       - name: host-sys
         hostPath:
           path: /sys
-      tolerations:
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
       restartPolicy: Always 

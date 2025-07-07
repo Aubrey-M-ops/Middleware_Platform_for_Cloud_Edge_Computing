@@ -38,15 +38,15 @@ kubectl apply -f "$CONFIG_DIR/agent-daemonset.yaml"
 
 # Wait for DaemonSet to be ready
 echo "⏳ Waiting for DaemonSet to be ready..."
-kubectl rollout status daemonset/cloud-agent --timeout=300s
+kubectl rollout status daemonset/universal-agent --timeout=300s
 
 # Check deployment status
 echo "📊 Agent deployment status:"
-kubectl get daemonset cloud-agent
-kubectl get pods -l app=cloud-agent
+kubectl get daemonset universal-agent
+kubectl get pods -l app=universal-agent
 
 echo "✅ Agents deployed successfully to all cloud nodes!"
 
 # Show agent logs (optional)
 echo "📋 Recent agent logs:"
-kubectl logs -l app=cloud-agent --tail=10 
+kubectl logs -l app=universal-agent --tail=10 
