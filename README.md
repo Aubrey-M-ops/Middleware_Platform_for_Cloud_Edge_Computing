@@ -1,5 +1,60 @@
 # Design and Implementation of a Middleware Platform for Managing Heterogeneous Cloud-Edge Deployments
 
+## 📁 Project Structure
+
+```
+Middleware_Platform_for_Cloud_Edge_Computing/
+├── agents/                          # Go agent implementation
+│   ├── main.go                     # Main agent logic
+│   ├── go.mod                      # Go module definition (Go 1.21)
+│   └── Dockerfile                  # Multi-stage Docker build for agent
+├── backend/                        # Node.js backend service
+│   ├── index.js                   # Express server entry point
+│   ├── package.json               # Node.js dependencies
+│   └── node_modules/              # Installed dependencies
+├── config/                        # Kubernetes deployment configurations
+│   ├── agent-daemonset.yaml      # DaemonSet for agent deployment
+│   └── .kube/                    # Kubernetes config files
+├── shell/                         # Deployment and setup scripts
+│   ├── cloud-setup.sh            # Cloud node setup script
+│   ├── edge-setup.sh             # Edge node setup script
+│   ├── deploy-agents.sh          # Agent deployment script
+│   ├── verify.sh                 # Verification script
+│   └── resource-discovery.sh     # Resource discovery script
+├── docs/                         # Documentation
+│   └── openapi.yaml             # API specification
+├── ml/                          # Machine learning models (future)
+├── dashboard/                    # Frontend dashboard (future)
+├── services/                     # Microservices (future)
+├── .github/                      # GitHub Actions CI/CD
+│   └── workflows/               # CI/CD pipeline definitions
+├── kind-config.yaml             # Kind cluster configuration
+├── docker-compose.yml           # Docker Compose for local development
+├── Makefile                     # Build and deployment automation
+├── .gitignore                   # Git ignore rules
+└── README.md                    # This file
+```
+
+### 📋 Directory Descriptions
+
+- **`agents/`**: Contains the Go-based agent that runs on each cloud/edge node. The agent is responsible for resource monitoring, service discovery, and communication with the backend.
+
+- **`backend/`**: Node.js Express server that provides the central backend service for the middleware platform, handling service registration, scheduling, and API endpoints.
+
+- **`config/`**: Kubernetes manifests and configuration files for deploying the platform components in a Kubernetes cluster.
+
+- **`shell/`**: Automation scripts for setting up cloud/edge nodes, deploying agents, and managing the platform infrastructure.
+
+- **`docs/`**: Project documentation including API specifications and technical guides.
+
+- **`ml/`**: Reserved for future machine learning models for load prediction and placement optimization.
+
+- **`dashboard/`**: Reserved for future React.js frontend dashboard for monitoring and management.
+
+- **`services/`**: Reserved for future microservices that will run on the platform.
+
+- **`.github/`**: GitHub Actions workflows for continuous integration and deployment.
+
 ## Middleware Modules
 
 - **Resource Discovery Service**

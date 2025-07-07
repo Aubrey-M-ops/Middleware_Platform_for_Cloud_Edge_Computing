@@ -26,6 +26,14 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
+func getNodeID() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "unknown-node"
+	}
+	return hostname
+}
+
 func getConfig() Config {
 	backendURL := getEnv("BACKEND_URL", "http://backend:3000")
 	nodeType := getEnv("NODE_TYPE", "edge")
@@ -39,10 +47,8 @@ func getConfig() Config {
 	}
 }
 
-
-
 func cpu() string {
-	out, _ := exec.Command("sh", "-c", "grep 'cpu ' /proc/stat").Output()
+	out, _ := exec.Command("sh", "-c", "grep 'cpu ' /host/proc/stat").Output()
 	return string(out)
 }
 
@@ -51,10 +57,18 @@ func memory() string {
 	return string(out)
 }
 
+func network() string {
+	out, _ := exec.Command("sh", "-c", "cat /host/proc/net/dev | grep -E '^(eth0|ens|enp)'").Output()
+	return string(out)
+}
+
 func sendHeartbeat(config Config) error {
+	nodeID := getNodeID()
 	data := map[string]interface{}{
+		"nodeID":    nodeID,
 		"cpu":       cpu(),
 		"memory":    memory(),
+		"network":   network(),
 		"nodeType":  config.NodeType,
 		"timestamp": time.Now().Unix(),
 	}
@@ -66,7 +80,7 @@ func sendHeartbeat(config Config) error {
 		return fmt.Errorf("failed to marshal data: %v", err)
 	}
 
-	resp, err := http.Post(config.BackendURL+"/heartbeat", "application/json", bytes.NewBuffer(dataJson))
+	resp, err := http.Post(config.BackendURL+"/node/heartbeat", "application/json", bytes.NewBuffer(dataJson))
 	if err != nil {
 		return fmt.Errorf("failed to send heartbeat: %v", err)
 	}
@@ -87,9 +101,9 @@ func main() {
 
 	for {
 		if err := sendHeartbeat(config); err != nil {
-			fmt.Printf("Error sending heartbeat: %v\n", err)
+			fmt.Printf("[ERROR] Failed to send heartbeat: %v\n", err)
 		} else {
-			fmt.Printf("Heartbeat sent successfully at %s\n", time.Now().Format("2006-01-02 15:04:05"))
+			fmt.Printf("[INFO] Heartbeat sent successfully at %s\n", time.Now().Format("2006-01-02 15:04:05"))
 		}
 
 		time.Sleep(time.Duration(config.HeartbeatInterval) * time.Second)

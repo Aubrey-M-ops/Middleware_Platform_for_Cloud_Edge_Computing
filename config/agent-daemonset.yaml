@@ -42,7 +42,7 @@ spec:
             cpu: "100m"
         env:
         - name: BACKEND_URL
-          value: "http://192.168.9.100:3000"
+          value: "http://backend-service:3000"
         - name: NODE_TYPE
           value: "cloud"
         - name: HEARTBEAT_INTERVAL
