@@ -1,27 +1,29 @@
+# Backend runs on the host, all clusters can access
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-service
+  name: backend-host
   namespace: default
   labels:
-    app: backend
+    app: backend-host
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: backend-host
   template:
     metadata:
       labels:
-        app: backend
+        app: backend-host
     spec:
+      hostNetwork: true  # use host network
       containers:
       - name: backend
         image: backend:latest
         imagePullPolicy: Never
         ports:
         - containerPort: 3000
-          name: http
+          hostPort: 3000 
         resources:
           requests:
             memory: "128Mi"
@@ -34,32 +36,23 @@ spec:
           value: "3000"
         - name: NODE_ENV
           value: "production"
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /healthz
-            port: 3000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: MONGODB_URI
+          value: "mongodb://admin:123123@192.168.9.100:27017/cloud-edge-platform?authSource=admin"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-service
+  name: backend-host-service
   namespace: default
   labels:
-    app: backend
+    app: backend-host
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
   - port: 3000
     targetPort: 3000
+    nodePort: 30000  # 固定 NodePort
     protocol: TCP
     name: http
   selector:
-    app: backend 
+    app: backend-host 

@@ -5,7 +5,7 @@ import Node from './models/node.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cloud-edge-platform';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:123123@192.168.9.100:27017/cloud-edge-platform?authSource=admin';
 
 // Middleware
 app.use(cors());
