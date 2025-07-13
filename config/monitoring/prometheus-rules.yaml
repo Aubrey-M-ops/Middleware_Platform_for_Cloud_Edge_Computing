@@ -1,0 +1,190 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cloud-edge-alerts
+  namespace: monitoring
+  labels:
+    app: cloud-edge-alerts
+    release: prometheus
+spec:
+  groups:
+  - name: cloud-edge.rules
+    rules:
+    # Node health alerts
+    - alert: NodeDown
+      expr: up{job="node-exporter"} == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Node {{ $labels.instance }} is down"
+        description: "Node {{ $labels.instance }} has been down for more than 5 minutes"
+    
+    - alert: HighCPUUsage
+      expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage on {{ $labels.instance }}"
+        description: "CPU usage is above 80% on {{ $labels.instance }}"
+    
+    - alert: HighMemoryUsage
+      expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage on {{ $labels.instance }}"
+        description: "Memory usage is above 85% on {{ $labels.instance }}"
+    
+    - alert: HighDiskUsage
+      expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100 > 85
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High disk usage on {{ $labels.instance }}"
+        description: "Disk usage is above 85% on {{ $labels.instance }}"
+    
+    # Cloud-Edge specific alerts
+    - alert: AgentHeartbeatMissing
+      expr: agent_heartbeat_total == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Agent heartbeat missing on {{ $labels.instance }}"
+        description: "No heartbeat received from agent on {{ $labels.instance }} for more than 2 minutes"
+    
+    - alert: BackendServiceDown
+      expr: up{job="cloud-edge-backend"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Backend service is down"
+        description: "Cloud-Edge backend service is not responding"
+    
+    - alert: MongoDBServiceDown
+      expr: up{job="mongodb"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "MongoDB service is down"
+        description: "MongoDB database service is not responding"
+    
+    - alert: HighPodRestartRate
+      expr: increase(kube_pod_container_status_restarts_total[5m]) > 5
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High pod restart rate on {{ $labels.instance }}"
+        description: "Pod restart rate is high on {{ $labels.instance }}"
+    
+    - alert: ServiceResponseTimeHigh
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High response time for {{ $labels.service }}"
+        description: "95th percentile response time is above 2 seconds for {{ $labels.service }}"
+    
+    # Network alerts
+    - alert: HighNetworkErrors
+      expr: rate(node_network_receive_errs_total[5m]) > 10
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High network errors on {{ $labels.instance }}"
+        description: "Network error rate is high on {{ $labels.instance }}"
+    
+    - alert: HighNetworkDropped
+      expr: rate(node_network_receive_drop_total[5m]) > 10
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High network drops on {{ $labels.instance }}"
+        description: "Network drop rate is high on {{ $labels.instance }}"
+    
+    # Resource alerts
+    - alert: PodMemoryUsageHigh
+      expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 85
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage in pod {{ $labels.pod }}"
+        description: "Memory usage is above 85% in pod {{ $labels.pod }}"
+    
+    - alert: PodCPUUsageHigh
+      expr: (rate(container_cpu_usage_seconds_total[5m]) / container_spec_cpu_quota) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage in pod {{ $labels.pod }}"
+        description: "CPU usage is above 80% in pod {{ $labels.pod }}"
+    
+    # Edge-specific alerts
+    - alert: EdgeNodeOffline
+      expr: up{job="node-exporter", node_type="edge"} == 0
+      for: 3m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Edge node {{ $labels.instance }} is offline"
+        description: "Edge node {{ $labels.instance }} has been offline for more than 3 minutes"
+    
+    - alert: CloudNodeOffline
+      expr: up{job="node-exporter", node_type="cloud"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Cloud node {{ $labels.instance }} is offline"
+        description: "Cloud node {{ $labels.instance }} has been offline for more than 2 minutes"
+    
+    # Service availability alerts
+    - alert: ServiceUnavailable
+      expr: up{job=~"cloud-edge-.*"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Service {{ $labels.job }} is unavailable"
+        description: "Service {{ $labels.job }} is not responding"
+    
+    # Performance alerts
+    - alert: SlowResponseTime
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 5
+      for: 10m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Slow response time for {{ $labels.service }}"
+        description: "95th percentile response time is above 5 seconds for {{ $labels.service }}"
+    
+    # Database alerts
+    - alert: MongoDBConnectionsHigh
+      expr: mongodb_connections_current > 100
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High MongoDB connections on {{ $labels.instance }}"
+        description: "MongoDB connection count is high on {{ $labels.instance }}"
+    
+    - alert: MongoDBOperationsSlow
+      expr: histogram_quantile(0.95, rate(mongodb_op_latency_seconds_bucket[5m])) > 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Slow MongoDB operations on {{ $labels.instance }}"
+        description: "MongoDB operations are slow on {{ $labels.instance }}" 

@@ -39,17 +39,63 @@ Middleware_Platform_for_Cloud_Edge_Computing/
 
 - **`agents/`**: Contains the Go-based agent that runs on each cloud/edge node. The agent is responsible for resource monitoring, service discovery, and communication with the backend.
 
-- **`backend/`**: Node.js Express server that provides the central backend service for the middleware platform, handling service registration, scheduling, and API endpoints.
+### 🚀 Quick Start
+
+```zsh
+# 1. Start Docker services (if using docker-compose)
+make docker-up
+
+# 2. Setup cloud infrastructure (Kubernetes with Kind)
+make cloud
+
+# 3. Setup edge infrastructure (K3s with K3d)
+make edge
+
+# 4. Start backend and MongoDB locally (required for agents)
+make services-start
+
+# 5. Deploy monitoring agents to cloud nodes
+make cloud-agent
+
+# 6. Install monitoring stack (Prometheus + Grafana)
+make monitoring
+
+# 7. Verify infrastructure
+# make verify
+```
+
+#### Option 2: Local Development Only
+
+For development and testing, you can run MongoDB and Backend services locally:
+
+```zsh
+# Start backend and MongoDB locally
+make services-start
+
+# Or start individually
+make mongodb-start
+make backend-start
+
+# Stop services
+make services-stop
+```
+
+**Local Services:**
+- **MongoDB**: `localhost:27017` (Docker container)
+- **Backend API**: `localhost:3000` (Node.js process)
+- **Prometheus**: `localhost:9090` (after monitoring setup)
+- **Grafana**: `localhost:3000` (admin/admin123)
+- **Agent Access**: `http://192.168.9.100:3000` (via host IP)
+
+- **`backend/`**: Node.js Express server that provides the central backend service for the middleware platform, handling service registration, scheduling, and API endpoints. Can be run locally or in containers.
 
 - **`config/`**: Kubernetes manifests and configuration files for deploying the platform components in a Kubernetes cluster.
 
-- **`shell/`**: Automation scripts for setting up cloud/edge nodes, deploying agents, and managing the platform infrastructure.
+- **`shell/`**: Automation scripts for setting up cloud/edge nodes, deploying agents, and managing the platform infrastructure. Includes local service startup scripts.
 
 - **`docs/`**: Project documentation including API specifications and technical guides.
 
 - **`ml/`**: Reserved for future machine learning models for load prediction and placement optimization.
-
-- **`dashboard/`**: Reserved for future React.js frontend dashboard for monitoring and management.
 
 - **`services/`**: Reserved for future microservices that will run on the platform.
 

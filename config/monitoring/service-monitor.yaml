@@ -1,0 +1,138 @@
+# ServiceMonitor 用于监控 cloud-edge-backend 服务的 Prometheus 指标
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cloud-edge-backend
+  namespace: monitoring
+  labels:
+    app: cloud-edge-backend
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: cloud-edge-backend
+  endpoints:
+  - port: http
+    path: /metrics  # 指定 metrics 端点路径
+    interval: 30s   # 抓取间隔
+    scrapeTimeout: 10s  # 抓取超时时间
+    honorLabels: true
+    metricRelabelings:
+    # 将 node_ 开头的指标重命名为 node_metric
+    - sourceLabels: [__name__]
+      regex: 'node_(.*)'
+      targetLabel: node_metric
+      replacement: '${1}'
+    # 将 pod_ 开头的指标重命名为 pod_metric
+    - sourceLabels: [__name__]
+      regex: 'pod_(.*)'
+      targetLabel: pod_metric
+      replacement: '${1}'
+    # 将 service_ 开头的指标重命名为 service_metric
+    - sourceLabels: [__name__]
+      regex: 'service_(.*)'
+      targetLabel: service_metric
+      replacement: '${1}'
+---
+# ServiceMonitor 用于监控 universal-agent（边缘/云 agent）的 Prometheus 指标
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cloud-edge-agents
+  namespace: monitoring
+  labels:
+    app: cloud-edge-agents
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: universal-agent
+  endpoints:
+  - port: metrics
+    path: /metrics  # agent 的 metrics 端点
+    interval: 30s
+    scrapeTimeout: 10s
+    honorLabels: true
+    metricRelabelings:
+    # agent_ 开头的指标重命名为 agent_metric
+    - sourceLabels: [__name__]
+      regex: 'agent_(.*)'
+      targetLabel: agent_metric
+      replacement: '${1}'
+    # heartbeat_ 开头的指标重命名为 heartbeat_metric
+    - sourceLabels: [__name__]
+      regex: 'heartbeat_(.*)'
+      targetLabel: heartbeat_metric
+      replacement: '${1}'
+---
+# ServiceMonitor 用于监控 MongoDB 的 Prometheus 指标
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mongodb
+  namespace: monitoring
+  labels:
+    app: mongodb
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: mongodb
+  endpoints:
+  - port: metrics
+    path: /metrics  # MongoDB exporter 的 metrics 端点
+    interval: 30s
+    scrapeTimeout: 10s
+    honorLabels: true
+    metricRelabelings:
+    # mongodb_ 开头的指标重命名为 mongodb_metric
+    - sourceLabels: [__name__]
+      regex: 'mongodb_(.*)'
+      targetLabel: mongodb_metric
+      replacement: '${1}'
+---
+# ServiceMonitor 用于监控 node-exporter（主机资源监控）的 Prometheus 指标
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: node-exporter
+  namespace: monitoring
+  labels:
+    app: node-exporter
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: node-exporter
+  endpoints:
+  - port: metrics
+    path: /metrics  # node-exporter 的 metrics 端点
+    interval: 30s
+    scrapeTimeout: 10s
+    honorLabels: true
+    metricRelabelings:
+    # node_ 开头的指标重命名为 node_metric
+    - sourceLabels: [__name__]
+      regex: 'node_(.*)'
+      targetLabel: node_metric
+      replacement: '${1}'
+    # cpu_ 开头的指标重命名为 cpu_metric
+    - sourceLabels: [__name__]
+      regex: 'cpu_(.*)'
+      targetLabel: cpu_metric
+      replacement: '${1}'
+    # memory_ 开头的指标重命名为 memory_metric
+    - sourceLabels: [__name__]
+      regex: 'memory_(.*)'
+      targetLabel: memory_metric
+      replacement: '${1}'
+    # disk_ 开头的指标重命名为 disk_metric
+    - sourceLabels: [__name__]
+      regex: 'disk_(.*)'
+      targetLabel: disk_metric
+      replacement: '${1}'
+    # network_ 开头的指标重命名为 network_metric
+    - sourceLabels: [__name__]
+      regex: 'network_(.*)'
+      targetLabel: network_metric
+      replacement: '${1}' 

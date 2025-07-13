@@ -1,0 +1,231 @@
+# Prometheus Helm Chart Values Configuration
+# For Cloud-Edge Platform Monitoring
+
+prometheus:
+  prometheusSpec:
+    # Prometheus server configuration
+    retention: 15d
+    retentionSize: 50GB
+    logLevel: info
+    
+    # Resource limits
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+    
+    # Storage configuration
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ""
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    
+    # Service configuration
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}
+    
+    # Additional scrape configs for cloud-edge platform
+    additionalScrapeConfigs:
+      - job_name: 'cloud-edge-agents'
+        static_configs:
+          - targets: ['cloud-cluster-worker-1:3000', 'edge-cluster-agent-1:3000']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+        
+      - job_name: 'cloud-edge-backend'
+        static_configs:
+          - targets: ['backend-service:3000']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+        
+      - job_name: 'mongodb'
+        static_configs:
+          - targets: ['mongodb-service:27017']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+        
+      - job_name: 'node-exporter'
+        static_configs:
+          - targets: ['node-exporter:9100']
+        scrape_interval: 30s
+        
+      - job_name: 'kube-state-metrics'
+        static_configs:
+          - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
+        scrape_interval: 30s
+
+# Node Exporter configuration
+nodeExporter:
+  enabled: true
+  
+  # Node Exporter configuration
+  config:
+    collectors:
+      # Enable all collectors for comprehensive monitoring
+      cpu: true
+      diskstats: true
+      filesystem: true
+      loadavg: true
+      meminfo: true
+      netdev: true
+      netstat: true
+      textfile: true
+      time: true
+      uname: true
+      vmstat: true
+      # Additional collectors for cloud-edge specific metrics
+      process: true
+      sockstat: true
+      tcpstat: true
+      udpstat: true
+      wifi: true
+      # Disable some collectors to reduce overhead
+      bonding: false
+      hwmon: false
+      infiniband: false
+      mdadm: false
+      nfs: false
+      ntp: false
+      qdisc: false
+      rapl: false
+      xfs: false
+      zfs: false
+  
+  # Resource limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  
+  # Service configuration
+  service:
+    port: 9100
+    targetPort: 9100
+    type: ClusterIP
+  
+  # Security context
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    fsGroup: 65534
+
+# Grafana configuration (optional)
+grafana:
+  enabled: true
+  
+  # Grafana configuration
+  adminPassword: "admin123"
+  
+  # Dashboard configuration
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'cloud-edge-dashboards'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/cloud-edge
+  
+  # Dashboards
+  dashboards:
+    cloud-edge:
+      cloud-edge-overview:
+        json: |
+          {
+            "dashboard": {
+              "id": null,
+              "title": "Cloud-Edge Platform Overview",
+              "tags": ["cloud-edge"],
+              "timezone": "browser",
+              "panels": [],
+              "time": {
+                "from": "now-1h",
+                "to": "now"
+              },
+              "refresh": "30s"
+            }
+          }
+  
+  # Resource limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Alertmanager configuration
+alertmanager:
+  enabled: true
+  
+  # Alertmanager configuration
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'web.hook'
+    receivers:
+      - name: 'web.hook'
+        webhook_configs:
+          - url: 'http://127.0.0.1:5001/'
+  
+  # Resource limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Kube-state-metrics configuration
+kubeStateMetrics:
+  enabled: true
+  
+  # Resource limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Pushgateway configuration (optional)
+pushgateway:
+  enabled: false
+
+# Service accounts
+serviceAccounts:
+  prometheus:
+    create: true
+    name: "prometheus"
+  alertmanager:
+    create: true
+    name: "alertmanager"
+  nodeExporter:
+    create: true
+    name: "node-exporter"
+  kubeStateMetrics:
+    create: true
+    name: "kube-state-metrics" 
