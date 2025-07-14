@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import fetch from 'node-fetch';
+// const fetch = require('node-fetch');
 
 const BASE_URL = 'http://localhost:3000';
 
@@ -187,11 +187,11 @@ async function runTests() {
 }
 
 // Run tests if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   runTests().catch(console.error);
 }
 
-export {
+module.exports = {
   makeRequest,
   testNodeHeartbeat,
   testGetNodes,

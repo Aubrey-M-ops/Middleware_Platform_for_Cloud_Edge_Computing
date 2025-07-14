@@ -2,10 +2,20 @@
 
 echo "🚀 Starting MongoDB locally..."
 
-# check if mongodb is already running
-if pgrep -x "mongod" > /dev/null; then
-    echo "⚠️  MongoDB is already running"
-    exit 0
+# check if mongodb container already exists
+if docker ps -a --format "table {{.Names}}" | grep -q "mongodb-local"; then
+    echo "⚠️  MongoDB container already exists"
+    
+    # check if container is running
+    if docker ps --format "table {{.Names}}" | grep -q "mongodb-local"; then
+        echo "✅ MongoDB container is already running"
+        exit 0
+    else
+        echo "🔄 Starting existing MongoDB container..."
+        docker start mongodb-local
+        echo "✅ MongoDB container started"
+        exit 0
+    fi
 fi
 
 # create data directory

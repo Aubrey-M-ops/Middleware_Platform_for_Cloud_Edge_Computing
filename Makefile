@@ -55,11 +55,11 @@ backend-start:
 
 # Install monitoring stack
 monitoring:
-	./shell/install-monitoring.sh
+	sudo ./shell/install-monitoring.sh
 
 # Uninstall monitoring stack
 uninstall-monitoring:
-	./shell/uninstall-monitoring.sh
+	sudo ./shell/uninstall-monitoring.sh
 
 # =============================================================================
 # TESTING

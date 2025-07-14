@@ -63,23 +63,6 @@ make monitoring
 # 7. Verify infrastructure
 # make verify
 ```
-
-#### Option 2: Local Development Only
-
-For development and testing, you can run MongoDB and Backend services locally:
-
-```zsh
-# Start backend and MongoDB locally
-make services-start
-
-# Or start individually
-make mongodb-start
-make backend-start
-
-# Stop services
-make services-stop
-```
-
 **Local Services:**
 - **MongoDB**: `localhost:27017` (Docker container)
 - **Backend API**: `localhost:3000` (Node.js process)
