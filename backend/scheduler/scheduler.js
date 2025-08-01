@@ -51,6 +51,7 @@ export class Scheduler {
   
   /**
    * Calculate node score based on resource availability
+   * TODO: 算法因素加在这里！！！！！！！！！
    * @param {object} node - Node data
    * @param {object} requirements - Service requirements
    * @returns {number} Node score (0-100)

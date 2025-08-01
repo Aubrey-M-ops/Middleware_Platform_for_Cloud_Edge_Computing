@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "cloud-edge-agent/proto;proto";
+
+service AgentService {
+  // Ping from one agent to another; returns Pong with timestamps
+  rpc Ping (PingRequest) returns (PongResponse);
+  // Get RTT matrix for visualization (optional for future use)
+  rpc GetRTTMatrix (Empty) returns (RTTMatrixResponse);
+}
+
+message PingRequest {
+  string fromNodeID = 1;
+  string toNodeID = 2;
+  int64 timestamp = 3; // nanoseconds since epoch
+}
+
+message PongResponse {
+  string fromNodeID = 1;
+  string toNodeID = 2;
+  int64 timestamp = 3;      // original ping timestamp
+  int64 pongTimestamp = 4;  // time at responder when sending pong
+}
+
+message Empty {}
+
+message RTTMatrixResponse {
+  repeated string nodes = 1;
+  repeated RTTEntry entries = 2;
+}
+
+message RTTEntry {
+  string fromNodeID = 1;
+  string toNodeID = 2;
+  int64 rtt = 3; // nanoseconds
+} 

@@ -1,7 +1,7 @@
-# DaemonSet作用：
-# 自动在每个符合条件的节点上创建Pod
-# 新节点加入集群时自动部署
-# 节点删除时自动清理Pod
+# DaemonSet：
+# Automatically creates a Pod on each eligible node
+# Automatically deploys when a new node joins the cluster
+# Automatically cleans up Pods when a node is removed
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -14,6 +14,7 @@ spec:
   selector:
     matchLabels:
       app: universal-agent
+  # add label for daemonset
   template:
     metadata:
       labels:
